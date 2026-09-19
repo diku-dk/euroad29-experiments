@@ -1,5 +1,12 @@
+# Generated things
 *.c
+plots
+*.json
+
+# Dependencies
 lib
+
+# Compiled programs
 ba
 ht
 greeks

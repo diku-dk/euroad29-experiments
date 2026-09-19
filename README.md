@@ -54,5 +54,5 @@ $ futhark bench --backend=cuda *.fut
 $ futhark bench --backend=opencl *.fut
 ```
 
-Add `--json result.json` to the end of any of these commands to produce the raw
+Add `--json results.json` to the end of any of these commands to produce the raw
 measurement results in a machine-readable format.
