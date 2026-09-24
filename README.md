@@ -1,8 +1,10 @@
 # Vector AD experiments
 
-This repository contains benchmark programs for showing the impact of vector AD.
-The goal is to study the practical speedup provided by vector AD, and whether
-parallelisation changes the picture.
+This repository, which was created for a presentation at
+[EuroAD](https://cambridge-iccs.github.io/euroad29/index.html), contains
+benchmark programs for showing the impact of vector AD. The goal is to study the
+practical speedup provided by vector AD, and whether parallelisation changes the
+picture.
 
 The programs are written in [Futhark](https://futhark-lang.org) and can be
 compiled to sequential CPU, multicore CPU, and GPU code.
