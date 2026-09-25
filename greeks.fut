@@ -1,7 +1,7 @@
 -- | Option "Greeks": the sensitivities of a Black-Scholes European call
 -- price to each of its five inputs, for a portfolio of options.
 --
--- This is the control for 'reaction_network.fut' and 'batch_reactor.fut':
+-- This is the control for 'reaction-network.fut' and 'batch-reactor.fut':
 -- it satisfies the same cost-model conditions they do, but its primal is a
 -- straight-line expression rather than a sequential loop, so the compiler
 -- can hoist the primal out of the seed map by itself.  It is the shape of

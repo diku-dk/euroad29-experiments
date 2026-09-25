@@ -3,6 +3,24 @@
 -- only configuration in which vector AD wins on this program, and only on the
 -- GPU: full width loses to the scalar baseline everywhere, and chunk width 1
 -- falls off a parallelism cliff.
+--
+-- Full width loses for three reasons:
+--
+-- * The primal is cheap relative to the tangents (a scalar 'jvp' costs about
+--   1.5x the objective), so there is little to amortise.
+--
+-- * The number of seeds depends on whether 'us' is empty, so the tangent
+--   width is not a compile-time constant.  Every tangent is a dynamically
+--   sized array, and the skinning loops materialise and transpose [M][d]
+--   intermediates.
+--
+-- * The scalar version parallelises over the seeds, each thread computing a
+--   whole objective.  The vector version has no seed map to parallelise over,
+--   so its parallelism must come from the inner maps inside the sequential
+--   loops over bones, which are small.
+--
+-- Chunking restores an outer map (over chunks) while still sharing the
+-- primal within each chunk, which is why it wins on the GPU.
 
 -- ==
 -- entry: calculate_objective

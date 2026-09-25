@@ -18,12 +18,21 @@
 --   hoist it out of the map over seeds.
 --
 -- * The state and parameters are scalars, so the tangent vectors are small and
---   of statically known size. They end up in registers or on the stack rather
---   than on the heap.
+--   of statically known size.
 --
--- The primal is also the expensive part: each derivative evaluation costs two
--- 'exp's, whereas differentiating them is a multiplication by a rate the primal
--- has already computed.
+-- The gain is nonetheless modest, because the primal is cheap.  The rate
+-- constants depend only on the parameters (the temperature is a parameter,
+-- not a state variable), so the compiler hoists both 'exp's out of the
+-- timestep loop.  What remains per step is a short chain of arithmetic, which
+-- costs about as much as a single tangent, so sharing it cannot give much more
+-- than a 2x speedup in forward mode.  Reverse mode gains more because it tapes
+-- the forward sweep once rather than three times.  See 'batch-reactor.fut'
+-- for a variant where the 'exp's stay inside the loop.
+--
+-- On the GPU the vector entries are compiled differently from the scalar
+-- ones: the timestep loop ends up outside the kernels, with separate primal
+-- and tangent kernels per step and the state and tangents kept in global
+-- memory, whereas each scalar entry is a single kernel.
 
 type params = (f64, f64, f64, f64, f64)
 type state = (f64, f64, f64)

@@ -29,6 +29,13 @@
 -- Reverse-mode vector AD has a large fixed cost but a very small marginal
 -- cost per seed, so it needs a decent number of outputs before it pays.
 --
+-- On the GPU the vector entries are compiled differently from the scalar
+-- ones: the timestep loop ends up outside the kernels, with a primal kernel
+-- over the reactors and a tangent (or adjoint) kernel over reactors x seeds
+-- per step, and the state kept in global memory.  The primal kernel therefore
+-- has only one thread per reactor.  Vector AD still wins because the 'exp's
+-- it shares are expensive, but this is probably not the best code possible.
+--
 -- Both modes are provided, with and without vector AD. The Jacobian is 7x20, so
 -- reverse needs seven sweeps where forward needs twenty.
 

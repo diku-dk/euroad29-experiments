@@ -1,5 +1,15 @@
 -- ba computes two 'vjp's per observation (one per residual component), so
 -- 'mjp' here has a seed width of 2.
+--
+-- Vector AD does remove real work: the scalar 'ba_diff' evaluates the
+-- Rodrigues rotation (a 'sqrt', 'sin' and 'cos') twice per observation, and
+-- 'ba_diff_vec' once.  But the primal is a small part of the Jacobian's cost,
+-- which also includes the reverse sweep and packing the sparse Jacobian, and
+-- every adjoint becomes a [2]f64 array.  On the CPU the saving and the
+-- overhead roughly cancel.  On the GPU the width-2 inner maps are flattened
+-- into separate kernels (plus a partition for the branch in
+-- 'rodrigues_rotate_point'), so intermediates that were in registers go
+-- through global memory, and the vector version is slower.
 
 -- ==
 -- entry: calculate_objective
