@@ -56,14 +56,13 @@ width = 1.0 / (nbackends + cluster_gap)
 bar(j) = (j - (nbackends - 1) / 2.0) * width
 
 set grid ytics lc rgb "#dddddd"
-set ylabel "Runtime relative to primal" offset 1.5, 0
+set ylabel "Runtime relative to primal on same backend" offset 1.5, 0
 set format y "%g×"
 set xtics scale 0 nomirror
 set key outside bottom center horizontal samplen 2
 
 set lmargin 7.5
 set rmargin 1.5
-set tmargin 2.5                 # enough for the title
 set bmargin 4                   # the method labels are two lines tall
 
 # The primal itself: a bar reaching this line would mean the Jacobian cost no
@@ -87,7 +86,6 @@ if (logscale) {
 
 do for [p in programs] {
   set output sprintf("plots/%s.%s", p, fmt eq "png" ? "png" : "pdf")
-  set title sprintf("%s - computing the full Jacobian", p) font "sans,12"
   plot sprintf("plots/%s.dat", p) using 2:xtic(1) title "CPU (seq)" lc rgb "#4878cf", \
                                '' using 3        title "CPU (mt)"  lc rgb "#ee854a", \
                                '' using 4        title "GPU"       lc rgb "#6acc64", \
