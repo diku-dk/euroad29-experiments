@@ -10,9 +10,9 @@ The programs are written in [Futhark](https://futhark-lang.org) and can be
 compiled to sequential CPU, multicore CPU, and GPU code.
 
 Each program contains code for computing an objective function and the full
-Jacobian, using both non-vector and vector AD (possibly with multiple chunk
-sizes). Some programs provide both reverse and forward mode (to illustrate the
-difference), while others provide only the most appropriate mode.
+Jacobian, using both non-vector and vector AD. Some programs provide both
+reverse and forward mode (to illustrate the difference), while others provide
+only the most appropriate mode.
 
 `ba` and `ht` have no expected results due to file size restrictions; the other
 three are fully validated.
@@ -58,3 +58,13 @@ $ futhark bench --backend=opencl *.fut
 
 Add `--json results.json` to the end of any of these commands to produce the raw
 measurement results in a machine-readable format.
+
+To improve GPU performance, you may need to run the auto-tuner. In particular
+`ht.fut` benefits tremendously from autotuning when using a GPU backend:
+
+```
+$ futhark autotune --backend=hip ht.fut
+```
+
+After doing the above, you will need to pass `--no-tuning` when not using a GPU
+backend, as the tuning file is backend-specific.

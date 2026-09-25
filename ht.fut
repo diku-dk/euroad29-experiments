@@ -1,8 +1,5 @@
 -- ht computes 26-28 'jvp's (one per parameter), so the full-width 'jmp' has a
--- seed width of 26-28. 'calculate_jacobian_chunk2' is kept because it is the
--- only configuration in which vector AD wins on this program, and only on the
--- GPU: full width loses to the scalar baseline everywhere, and chunk width 1
--- falls off a parallelism cliff.
+-- seed width of 26-28.
 --
 -- Full width loses for three reasons:
 --
@@ -19,8 +16,8 @@
 --   so its parallelism must come from the inner maps inside the sequential
 --   loops over bones, which are small.
 --
--- Chunking restores an outer map (over chunks) while still sharing the
--- primal within each chunk, which is why it wins on the GPU.
+-- On GPU, it can squeak in a win if we autotune to take advantage of
+-- incremental flattening.
 
 -- ==
 -- entry: calculate_objective
@@ -32,10 +29,6 @@
 
 -- ==
 -- entry: calculate_jacobian_vec
--- compiled input @ data/ht12_complicated_t26_c100000.in
-
--- ==
--- entry: calculate_jacobian_chunk2
 -- compiled input @ data/ht12_complicated_t26_c100000.in
 
 import "lib/github.com/diku-dk/linalg/linalg"
@@ -320,54 +313,3 @@ entry calculate_jacobian_vec [num_bones] [N] [M] [num_us]
                      (theta, us)
                      seeds)
   in reorder us J
-
--- | 'jmp' over chunks of 'chunk' seeds: the primal is computed once
--- per chunk.  The seed count is rounded up to a multiple of 'chunk';
--- the surplus seeds are zero and their rows are discarded.  'chunk' is
--- a compile-time constant so that the tangent arrays have a static
--- width.
-def jac_chunk [num_bones] [N] [M] [num_us]
-              (chunk: i64)
-              (model: hand_model [num_bones] [M])
-              (correspondences: [N]i32)
-              (points: [3][N]f64)
-              (theta: [theta_count]f64)
-              (us: [num_us]f64) : [][N * 3]f64 =
-  let n = num_seeds num_us
-  let chunks = (n + chunk - 1) / chunk
-  let seeds = tabulate_2d chunks chunk (\i j -> seed num_us (i * chunk + j))
-  in #[flattening(sequentialise_nonuniform)]
-     map (\cseeds ->
-            map flatten (jmp (uncurry (objective model correspondences points))
-                             (theta, us)
-                             cseeds))
-         seeds
-     |> flatten
-     |> take n
-     |> reorder us
-
-entry calculate_jacobian_chunk2 [num_bones] [N] [M] [num_us]
-                                (parents: [num_bones]i32)
-                                (base_relatives: [num_bones][4][4]f64)
-                                (inverse_base_absolutes: [num_bones][4][4]f64)
-                                (weights: [num_bones][M]f64)
-                                (base_positions: [4][M]f64)
-                                (triangles: [][3]i32)
-                                (is_mirrored: bool)
-                                (correspondences: [N]i32)
-                                (points: [3][N]f64)
-                                (theta: [theta_count]f64)
-                                (us: [num_us]f64) : [][N * 3]f64 =
-  jac_chunk 2
-            { parents
-            , base_relatives
-            , inverse_base_absolutes
-            , weights
-            , base_positions
-            , triangles
-            , is_mirrored
-            }
-            correspondences
-            points
-            theta
-            us
